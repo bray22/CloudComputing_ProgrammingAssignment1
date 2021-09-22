@@ -19,7 +19,8 @@ import os  # need this for popen
 import datetime
 import time  # for sleep
 import json
-import sys from kafka import KafkaProducer  # producer of events
+import sys
+from kafka import KafkaProducer  # producer of events
 import config
 
 """kafka-python docs: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaProducer.html"""
@@ -54,7 +55,7 @@ def main():
     acks=1)
 
     # wait for leader to write to log
-    if sys.argv[1] && sys.argv[1] == "ny":
+    if sys.argv[1] == "ny":
         city = "New York"
         topic_ = "ny"
     elif sys.argv[1] == "chi":
@@ -93,3 +94,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
