@@ -55,15 +55,15 @@ def main():
     acks=1)
 
     # wait for leader to write to log
-    if sys.argv[1] == "ny":
-        city = "New York"
-        topic_ = "ny"
-    elif sys.argv[1] == "chi":
-        city = "Chicago"
-        topic_ = "chi"
-    else:
-        city = sys.argv[1]
-        topic_ = sys.argv[1]
+    # if sys.argv[1] == "ny":
+    #     city = "New York"
+    #     topic_ = "ny"
+    # elif sys.argv[1] == "chi":
+    #     city = "Chicago"
+    #     topic_ = "chi"
+    # else:
+    #     city = sys.argv[1]
+    #     topic_ = sys.argv[1]
 
     # say we send the contents 100 times after a sleep of 1 sec in between
     api_key = get_api_key()
