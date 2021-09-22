@@ -14,84 +14,41 @@
 #    command line consumer (or consumers)
 #
 
-# IMPORTS
-import os  # need this for popen
-import datetime
-import time  # for sleep
-import json
-import sys
+import os   # need this for popen
+import time # for sleep
 from kafka import KafkaProducer  # producer of events
-import config
 
-"""kafka-python docs: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaProducer.html"""
-import requests
+# We can make this more sophisticated/elegant but for now it is just
+# hardcoded to the setup I have on my local VMs
 
+# acquire the producer
+# (you will need to change this to your bootstrap server's IP addr)
+producer = KafkaProducer (bootstrap_servers="129.114.25.80:9092", 
+                                          acks=1)  # wait for leader to write to log
 
-# GLOBAL FUNCTIONS
-def get_api_key():
-    """
-    Get the API key from the environment variable
-    """
-    return os.environ.get("WEATHER_API_KEY")
+# say we send the contents 100 times after a sleep of 1 sec in between
+for i in range (100):
+    
+    # get the output of the top command
+    process = os.popen ("top -n 1 -b")
 
+    # read the contents that we wish to send as topic content
+    contents = process.read ()
 
-def weather_request(city: str, api_key: str):
-    """
-    Make a request to the weather API and return the response
-    LIMIT 60 calls per minute
-    """
-    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=imperial"
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-        # return response.content
-    else:
-        return None
+    # send the contents under topic utilizations. Note that it expects
+    # the contents in bytes so we convert it to bytes.
+    #
+    # Note that here I am not serializing the contents into JSON or anything
+    # as such but just taking the output as received and sending it as bytes
+    # You will need to modify it to send a JSON structure, say something
+    # like <timestamp, contents of top>
+    #
+    producer.send ("utilizations", value=bytes (contents, 'ascii'))
+    producer.flush ()   # try to empty the sending buffer
 
+    # sleep a second
+    time.sleep (1)
 
-def main():
-    # acquire the producer
-    producer = KafkaProducer(bootstrap_servers=config.kafka_servers, api_version=(2,13,0),
-    acks=1)
-
-    # wait for leader to write to log
-    if sys.argv[1] == "ny":
-        city = "New York"
-        topic_ = "ny"
-    elif sys.argv[1] == "chi":
-        city = "Chicago"
-        topic_ = "chi"
-    else:
-        city = sys.argv[1]
-        topic_ = sys.argv[1]
-
-    # say we send the contents 100 times after a sleep of 1 sec in between
-    api_key = get_api_key()
-    for i in range(100):
-
-        output = weather_request(city, api_key)
-
-
-        if output != None:
-            # send the output to the Kafka topic
-            message = {"City": output['name'],
-                       "Description": output['weather'][0]['description'],
-                       "Temperature": output['main']['temp'],
-                       "ts": datetime.datetime.now().isoformat()}
-            print(message)
-            # steralize data
-            message = bytes(json.dumps(message), 'ascii')
-            producer.send(topic=topic_, value=message)
-            producer.flush()  # try to empty the sending buffer
-            # sleep a second
-            time.sleep(5)  # changed to 5 seconds for api limit
-        else:
-            raise Exception("Error in send")
-
-    # we are done
-    producer.close()
-
-
-if __name__ == "__main__":
-    main()
+# we are done
+producer.close ()
     
