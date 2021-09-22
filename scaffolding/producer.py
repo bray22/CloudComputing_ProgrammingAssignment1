@@ -54,6 +54,8 @@ def main():
     producer = KafkaProducer(bootstrap_servers=config.kafka_servers, api_version=(2,13,0),
     acks=1)
 
+     city = "New York"
+
     # wait for leader to write to log
     # if sys.argv[1] == "ny":
     #     city = "New York"
